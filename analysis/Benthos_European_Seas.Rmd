@@ -1,0 +1,120 @@
+---
+title: "Macrozoobenthos presence/absence in European Seas"
+author: "Peter M.J. Herman"
+date: "2022-03-07"
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+          encoding=encoding, 
+          output_file="../docs/Benthos_presence_absence_European_seas.pdf")}) 
+output: pdf_document
+---
+## Introduction
+
+This is a continuation and generalisation of the presence/absence data product on benthos of the Greater North Sea and of the Med Sea and Black Sea. In this product, all data of all European seas are analysed.
+The aim of this analysis is to derive information, not only on presences of taxa that are recorded in the dataset, but also (by inference) on absence. It is assumed that datasets which have analysed the complete benthic community, would have recorded all benthic species if they would have been present. Not finding a taxon in such a sample, is considered a recorded absence. For datasets that are known to have targeted only part of the community, absence can be inferred for those species that have been found elsewhere in the dataset, but not in a particular sample. The implementation of this principle is documented in this description.
+
+Because of the size of the dataset (around 250,000 samples with over 10,000 taxa found), the analysis has been split up in different building blocks. Each block independently reads the necessary information from previous steps from files, and cleans up the memory after having completed its task. The large datafiles cannot be documented in GitHub, and will need to be rebuilt if this software is to be implemented again.
+
+```{r define_include_files,EVAL=TRUE,echo=FALSE}
+cachedata = FALSE
+cachemodels = FALSE
+scriptsDir<-"../scripts"
+incl_setbasics = file.path(scriptsDir,"setbasics.R")
+incl_auxiliary_functions = file.path(scriptsDir,"auxiliary_functions.R")
+incl_make_all2Data = file.path(scriptsDir,"make_all2Data.R")
+incl_make_allDataExtra = file.path(scriptsDir,"make_allDataExtra.R")
+incl_make_invent = file.path(scriptsDir,"make_invent.R")
+incl_make_netcdf = file.path(scriptsDir,"create_netcdf_output.R")
+incl_make_nsp_attr = file.path(scriptsDir,"make_nsp_attr.R")
+incl_make_pres_abs_file = file.path(scriptsDir,"make_pres_abs_file.R")
+incl_make_rasters = file.path(scriptsDir,"make_rasters.R")
+incl_make_sp2use = file.path(scriptsDir,"make_sp2use.R")
+```
+
+## Preliminaries
+
+The following code opens all packages used, sets some paths and defines the basic lon-lat projection used in this project. In addition, it reads some auxiliary functions that are stored in the script ./scripts/auxiliary_functions.R
+
+### Packages etc.
+```{r setup,code=readLines(incl_setbasics),eval=FALSE,echo=TRUE,cache=FALSE }
+```
+### Auxiliary functions
+```{r setup,code=readLines(incl_auxiliary_functions),eval=FALSE,echo=TRUE,cache=FALSE }
+```
+
+
+
+## Data selection and retrieval
+
+The retrieval of data goes in two steps. 
+
+### Step 1. Use functional group information to harvest potentially interesting datasets. 
+
+A query is performed for data on species known to be benthic (in WoRMS) and to occur in a number of different sea regions. The sea regions of interest are set in the file ./data/derived_data/regions.csv. The download yields a large dataset with benthic data. It is downloaded in chunks to minimize the risk of timeouts and other problems in downloading too big chunks of data at once, and recompiled afterwards into the very large (several gigabytes) file allDataExtra.csv.
+
+```{r make_allDataExtra,code=readLines(incl_make_allDataExtra),eval=FALSE,echo=TRUE,cache=FALSE }
+```
+
+### Step 2. Download by dataset.
+
+Many of the data from the first step come from datasets that are not useful for our purpose. As an example, planktonic datasets contain many benthic animals, because larvae of benthic animals occur in the zooplankton (the so-called meroplankton). We cannot use the plankton datasets to infer anything about absence of benthos on the sea floor. 
+
+The dataset resulting from the first action is used for a single purpose: identify all potentially interesting datasets, that contain at least one benthic animal in the region of interest. We subsequently use the imis database with meta-information on the datasets, to list the meta-data of all these datasets. This results in the file ./data/derived_data/allDatasets.csv.
+
+In this file we perform the (manual) selection of datasets to be used. The steps used were: (1) only select datasets that had macrozoobenthos as their primary target. We also excluded datasets focusing on meiobenthos, hyperbenthos, epibenthos. (2) estimate from the dataset description if complete communities were targeted. We qualify the datasets as 'complete' if this is the case, and as 'incomplete' if not. The result of this manual procedure is the file ./data/derived_data/allDatasets_selection.csv. In comparison with the file allDatasets.csv, we have added two logical fields: "include" and "complete". The file is included into the github repository for inspection.
+
+Subsequently, a file is produced listing per marine region which datasets need to be downloaded. This was necessary because the server produces an error if one tries to download a dataset for a region where that dataset has no data.
+
+```{r make_invent,code=readLines(incl_make_invent),eval=FALSE,echo=TRUE }
+```
+
+With these preliminaries, we can proceed to downloading all relevant datasets in all regions, and fusing these into a single (very large) file.
+
+```{r make_all2Data,code=readLines(incl_make_all2Data),eval=FALSE,echo=TRUE,cache=FALSE }
+```
+
+
+## Analysis of the taxa represented in the dataset
+The selection of data in the first step makes use of the traits stored in WoRMS, the World Register of Marine Species. For many species in this database, the functional group to which the species belongs is recorded. However, this is not yet complete. We can help the development of these traits databases from the compilation of data performed here. Since we selected benthic data sets, we can assume that most species in our database will be benthic, although it appears this is not absolutely the case everywhere. Here we try to use as much information as possible, either from the traits database or from the taxonomic position of the taxa, to derive what functional group they belong to. That is used to narrow down the list of taxa to the benthic species we are targeting, but also to report back to WoRMS with suggestions to improve the traits database. 
+ 
+The checks are illustrated in the following code, in two steps. First, the downloading of the trait information of over 15000 species is only done once. Results have been written to a file after performing this step, and as long as the file exists, it is read in.
+
+
+```{r make_nsp_attr,code=readLines(incl_make_nsp_attr),eval=FALSE,echo=TRUE,cache=FALSE }
+```
+
+Once the basic attributes are retrieved (a very time-consuming step), the species to be used in the analysis are selected. This selection is documented in the following code. We make use as much as possible of stored traits information, to eliminate species known to be something else than macrozoobenthos (e.g. meiobenthos, hyperbenthos, plants, birds, fish etc.). Then we use taxonomic information to eliminate taxa in these groups as much as possible. All Nematodes, as an example, are classified as meiobenthos even if WoRMS does not do it.
+After the selection, we produce lists of doubtful classifications as input to WoRMS. We also produce the file sp2use.csv, with the names and AphiaIDs of species to be used in subsequent analysis.
+
+
+```{r make_sp2use,code=readLines(incl_make_sp2use),eval=FALSE,echo=TRUE,cache=FALSE }
+```
+
+## Derivation of presence/absence information
+
+For the derivation of presence/absence information, we define 'sampling events' as the ensembles of records that share time and place. We consider such events as one sample. For the incomplete datasets, we inventory what species they have targeted. Finally, for every species we determine whether or not it was present in all sampling events of all relevant datasets. This presence/absence information is written to the output file, together with the spatial location and the sampling date. The output file is a CF compliant netcdf file, that is prepared using a function that writes all dimensions, variables and attributes to the file, but not yet the actual presence-absence data. That information is calculated in a loop over species, en for each species it is added to the netcdf file right after the calculation. This procedure limits the size of files to be kept in memory.
+
+The function used to prepare the netcdf file is documented in this code chunk.
+Data are stored in the so-called 'point' format of CF conventions. In this case, presence (1), absence (0) or no observation (NA) of a taxon in a specific sample is stored in a large sample * taxa two-dimensional matrix. The samples are further specified by their latitute, longitude and date of sampling, which all three are one-dimensional arrays with the number of samples as length. Taxa are specified by the Aphia ID in Worms and by the scientific name of the taxon, which both have the dimension number of taxa.
+Further information is stored on the crs. This is an empty variable that is added because of its attributes, which store the real information on the coordinate stystem used. In this case geographic coordinates and the WGS84 ellipsoid have been used. Finally, a large number of metadata general attributes are added to the file.
+
+```{r create_netcdf_output_file, code=readLines(incl_make_netcdf),eval=FALSE,echo=TRUE,cache=FALSE}
+```
+
+
+The code used to calculate presence/absence information and store it in the netcdf output file is documented here.
+
+```{r make_pres_abs_file,code=readLines(incl_make_pres_abs_file),eval=FALSE,echo=TRUE,cache=FALSE }
+```
+
+
+## Making rasters and maps per species
+
+
+The intention is to use this information to produce interpolated maps covering also the non-sampled space. As a first step in visualisation, we can rasterize this information and show it in a map per species. The following code block documents a function that calculates the raster and produces a map for a species, based on the sequence number of the species in the list of species. Note that this list of species is ordered (in descending order) by the number of occurrences of the species in the total data set.
+
+We use the EMODnet mapping package EMODnetBiologyMaps to produce maps of the rasters.
+
+
+```{r make_rasters,code=readLines(incl_make_rasters),eval=FALSE,echo=TRUE,cache=FALSE }
+```
