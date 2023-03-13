@@ -44,7 +44,7 @@ The wfs calls can also be found in the code.
 
 ## Data product
 
-![example product Macoma balthica](https://github.com/EMODnet/EMODnet-Biology-Benthos-European-Seas/blob/master/0001_141579_Macoma-balthica.png)
+![example product Macoma balthica](https://github.com/pmjherman/EMODnet-Biology-Benthos-European-Seas/blob/master/0001_141579_Macoma-balthica.png)
 
 Per taxon, the presence or absence in each of the sampling events is recorded as a Boolean variable. That variable can take the values TRUE (taxon is found in the sample), FALSE (taxon was looked for but has not been found) or NA (taxon was not looked for in this sample, as the sample came from an incomplete dataset that did not cover this taxon). The result of the analysis has been summarized in one netcdf file. Output is restricted to taxa that have been found more than 200 times in the entire dataset, but this can be changed in the code. This file is to be used as a basis for the production of interpolation maps, but can also be used as a basis for clustering and descriptive analyses. 
 
@@ -67,11 +67,9 @@ WoRMS Editorial Board (2021). World Register of Marine taxon. Available from htt
 
 This product should be cited as:
 
-Herman, P.M.J. 2022. Summary presence/absence maps of macro-endobenthos in European Seas, based on the EMODNET Biology database.
+Herman, P.M.J. (2022) Summary presence/absence maps of macro-endobenthos in European Seas, based on the EMODNET Biology database. Integrated data products created under the European Marine Observation  Data Network (EMODnet) Biology project Phase IV (EMFF/2019/1.3.1.9/Lot  6/SI2.837974), funded by the by the European Union under Regulation (EU) No 508/2014 of the European Parliament and of the Council of 15 May  2014 on the European Maritime and Fisheries Fund.
 
-Available to download in:
-
-TO BE COMPLETED
+Available to download in: https://www.vliz.be/imis?dasid=8216
 
 ### Authors
 
