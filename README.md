@@ -69,7 +69,11 @@ This product should be cited as:
 
 Herman, P.M.J. (2022) Summary presence/absence maps of macro-endobenthos in European Seas, based on the EMODNET Biology database. Integrated data products created under the European Marine Observation  Data Network (EMODnet) Biology project Phase IV (EMFF/2019/1.3.1.9/Lot  6/SI2.837974), funded by the by the European Union under Regulation (EU) No 508/2014 of the European Parliament and of the Council of 15 May  2014 on the European Maritime and Fisheries Fund.
 
-Available to download in: https://www.vliz.be/imis?dasid=8216
+Available to download in: 
+
+EMODnet catalogue=> https://emodnet.ec.europa.eu/geonetwork/srv/eng/catalog.search#/metadata/ff843b853fa0912ac7ae8aa18a08304cad0fed70
+VLIZ catalogue=> https://www.vliz.be/imis?dasid=8216
+VLIZ MDA=> https://mda.vliz.be/directlink.php?fid=VLIZ_00000727_640f2ae069c07615997234
 
 ### Authors
 
