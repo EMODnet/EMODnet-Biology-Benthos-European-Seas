@@ -73,6 +73,7 @@ Available to download in:
 
 EMODnet catalogue=> https://emodnet.ec.europa.eu/geonetwork/srv/eng/catalog.search#/metadata/ff843b853fa0912ac7ae8aa18a08304cad0fed70
 VLIZ catalogue=> https://www.vliz.be/imis?dasid=8216
+EMODnet viewer=> https://emodnet.ec.europa.eu/geoviewer/?layers=12975:1:1&basemap=ebwbl&active=12975&bounds=-8108447.236064361,3082466.8149999995,11062488.39206436,11459766.29&filters=&projection=EPSG:3857
 VLIZ MDA=> https://mda.vliz.be/directlink.php?fid=VLIZ_00000727_640f2ae069c07615997234
 
 ### Authors
